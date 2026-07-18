@@ -51,9 +51,36 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+def _add_missing_columns() -> None:
+    """Lightweight forward-only migration: add columns present on the models but
+    missing from pre-existing tables.
+
+    This lets the app evolve its schema on an existing database without a full
+    migration tool. Only *additive*, nullable columns are handled (all new
+    columns in this project are nullable), so no backfill/default is required.
+    Runs for both SQLite and Postgres.
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    for table in Base.metadata.sorted_tables:
+        if table.name not in existing_tables:
+            continue  # brand-new tables are handled by create_all
+        existing_cols = {c["name"] for c in inspector.get_columns(table.name)}
+        for column in table.columns:
+            if column.name in existing_cols:
+                continue
+            col_type = column.type.compile(dialect=engine.dialect)
+            ddl = f'ALTER TABLE {table.name} ADD COLUMN {column.name} {col_type}'
+            with engine.begin() as conn:
+                conn.execute(text(ddl))
+
+
 def init_db() -> None:
-    """Create all tables. Called on application startup."""
+    """Create all tables and apply additive column migrations. Called on startup."""
     # Import models so they are registered on the metadata before create_all.
     from . import models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    _add_missing_columns()
