@@ -61,7 +61,7 @@ def send_email(to: str, subject: str, body: str) -> None:
 
 def send_verification_email(to: str, user_id: int) -> None:
     token = make_token(user_id, "verify", expires_minutes=60 * 24)
-    link = f"{settings.frontend_url}/verify?token={token}"
+    link = f"{settings.effective_frontend_url}/verify?token={token}"
     send_email(
         to,
         "Verify your CLT Trading Journal email",
@@ -72,7 +72,7 @@ def send_verification_email(to: str, user_id: int) -> None:
 
 def send_password_reset_email(to: str, user_id: int) -> None:
     token = make_token(user_id, "reset", expires_minutes=30)
-    link = f"{settings.frontend_url}/reset?token={token}"
+    link = f"{settings.effective_frontend_url}/reset?token={token}"
     send_email(
         to,
         "Reset your CLT Trading Journal password",

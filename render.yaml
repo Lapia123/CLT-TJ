@@ -5,6 +5,12 @@
 # connect this GitHub repo, and Render provisions the web service plus a
 # managed Postgres database and wires them together automatically.
 
+# Preview environments: every pull request gets its own full copy of these
+# services + a fresh database at a unique *.onrender.com URL, so changes can be
+# reviewed live before merging. (Preview envs use the service's instance type.)
+previews:
+  generation: automatic
+
 databases:
   - name: clt-tj-db
     databaseName: clt_tj
@@ -35,3 +41,21 @@ services:
       # SPA is served same-origin by the API, so CORS is permissive by default.
       - key: CORS_ORIGINS
         value: "*"
+      # FRONTEND_URL is intentionally unset — the app falls back to
+      # RENDER_EXTERNAL_URL, so email links point at prod OR the preview URL.
+
+      # --- Email via SendGrid SMTP relay ---
+      - key: SMTP_HOST
+        value: smtp.sendgrid.net
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: apikey  # SendGrid's fixed SMTP username; the API key is the password
+      - key: SMTP_TLS
+        value: "true"
+      # Must be a Verified Sender / authenticated domain in SendGrid.
+      - key: SMTP_FROM
+        value: CLT Trading Journal <no-reply@example.com>
+      # SECRET: set this in the Render dashboard, never in git.
+      - key: SMTP_PASSWORD
+        sync: false
