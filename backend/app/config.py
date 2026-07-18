@@ -6,6 +6,7 @@ runs out of the box for local development, while production deployments can
 supply a real secret key and a Postgres/MySQL DATABASE_URL.
 """
 
+import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -35,7 +36,9 @@ class Settings(BaseSettings):
 
     # --- Email / links ---
     # Public base URL of the SPA, used to build verify/reset links in emails.
-    frontend_url: str = "http://localhost:5173"
+    # If unset, we fall back to RENDER_EXTERNAL_URL (auto-set on Render, including
+    # per-PR preview environments) so email links always point at the right host.
+    frontend_url: str = ""
     # SMTP is optional. When unset, emails are logged instead of sent (dev mode),
     # so the flows work end-to-end without a mail server.
     smtp_host: str = ""
@@ -48,6 +51,15 @@ class Settings(BaseSettings):
     @property
     def email_enabled(self) -> bool:
         return bool(self.smtp_host and self.smtp_user)
+
+    @property
+    def effective_frontend_url(self) -> str:
+        if self.frontend_url:
+            return self.frontend_url.rstrip("/")
+        render_url = os.environ.get("RENDER_EXTERNAL_URL")
+        if render_url:
+            return render_url.rstrip("/")
+        return "http://localhost:5173"
 
     @property
     def cors_origin_list(self) -> list[str]:
