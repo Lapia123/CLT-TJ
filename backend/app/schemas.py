@@ -19,11 +19,6 @@ class UserCreate(BaseModel):
     starting_balance: float = Field(default=10000.0, ge=0)
 
 
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -44,6 +39,56 @@ class Token(BaseModel):
     user: UserOut
 
 
+# --------------------------- Accounts ---------------------------
+class AccountBase(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    broker: str | None = Field(default=None, max_length=120)
+    currency: str = Field(default="USD", max_length=8)
+    starting_balance: float = Field(default=10000.0, ge=0)
+    is_default: bool = False
+
+
+class AccountCreate(AccountBase):
+    pass
+
+
+class AccountUpdate(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    broker: str | None = Field(default=None, max_length=120)
+    currency: str | None = Field(default=None, max_length=8)
+    starting_balance: float | None = Field(default=None, ge=0)
+    is_default: bool | None = None
+
+
+class AccountOut(AccountBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    created_at: datetime
+
+
+# --------------------------- Playbooks ---------------------------
+class PlaybookBase(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    description: str | None = None
+    rules: str | None = None
+
+
+class PlaybookCreate(PlaybookBase):
+    pass
+
+
+class PlaybookUpdate(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    description: str | None = None
+    rules: str | None = None
+
+
+class PlaybookOut(PlaybookBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    created_at: datetime
+
+
 # --------------------------- Trades ---------------------------
 class TradeBase(BaseModel):
     symbol: str = Field(min_length=1, max_length=32)
@@ -58,7 +103,12 @@ class TradeBase(BaseModel):
     exit_date: datetime | None = None
     setup: str | None = Field(default=None, max_length=64)
     tags: str | None = Field(default=None, max_length=255)
+    mistakes: str | None = Field(default=None, max_length=255)
+    rating: int | None = Field(default=None, ge=1, le=5)
+    images: list[str] = Field(default_factory=list)
     notes: str | None = None
+    account_id: int | None = None
+    playbook_id: int | None = None
 
     @field_validator("symbol")
     @classmethod
@@ -84,7 +134,12 @@ class TradeUpdate(BaseModel):
     exit_date: datetime | None = None
     setup: str | None = Field(default=None, max_length=64)
     tags: str | None = Field(default=None, max_length=255)
+    mistakes: str | None = Field(default=None, max_length=255)
+    rating: int | None = Field(default=None, ge=1, le=5)
+    images: list[str] | None = None
     notes: str | None = None
+    account_id: int | None = None
+    playbook_id: int | None = None
 
     @field_validator("symbol")
     @classmethod
@@ -105,6 +160,21 @@ class TradeOut(TradeBase):
     r_multiple: float | None = None
     is_win: bool | None = None
     holding_period_hours: float | None = None
+
+
+class ImportPreviewRow(BaseModel):
+    row: int
+    ok: bool
+    error: str | None = None
+    data: dict | None = None
+
+
+class ImportResult(BaseModel):
+    total: int
+    valid: int
+    invalid: int
+    rows: list[ImportPreviewRow]
+    imported: int = 0
 
 
 # --------------------------- Journal ---------------------------

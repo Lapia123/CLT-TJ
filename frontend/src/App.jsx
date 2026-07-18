@@ -6,6 +6,7 @@ import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Trades from "./pages/Trades.jsx";
 import Analytics from "./pages/Analytics.jsx";
+import Playbooks from "./pages/Playbooks.jsx";
 import Journal from "./pages/Journal.jsx";
 import Settings from "./pages/Settings.jsx";
 
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="/" element={<Protected><Dashboard /></Protected>} />
       <Route path="/trades" element={<Protected><Trades /></Protected>} />
       <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
+      <Route path="/playbooks" element={<Protected><Playbooks /></Protected>} />
       <Route path="/journal" element={<Protected><Journal /></Protected>} />
       <Route path="/settings" element={<Protected><Settings /></Protected>} />
       <Route path="*" element={<Navigate to="/" replace />} />

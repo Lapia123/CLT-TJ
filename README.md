@@ -8,17 +8,26 @@ profit factor, then review where your edge actually comes from.
 
 ## Features
 
-- **Accounts** — JWT authentication (register / login), per-user data isolation.
+- **Auth & accounts** — JWT authentication (register / login), per-user isolation,
+  and **multiple trading accounts** you can filter the whole app by.
 - **Trade log** — full CRUD for long/short, open/closed positions with entry/exit
-  prices, stops, targets, fees, setup, tags and notes.
+  prices, stops, targets, fees, setup, tags, **mistakes**, a **1–5 star rating**,
+  **chart screenshots**, playbook and account links, and notes.
+- **Trade detail view** — a full per-trade page with metrics, tags/mistakes, and a
+  screenshot gallery.
+- **CSV / broker import** — bulk-import trades from a CSV with a downloadable
+  template, a validation preview (per-row OK/error), and one-click commit.
 - **Automatic metrics** — gross & net P&L, return %, R-multiple, win/loss and
   holding period computed on the fly (rounded to 2 decimals, no ledger drift).
 - **Dashboard** — net P&L, balance, win rate, profit factor, expectancy, average
-  win/loss, best/worst trade, streaks, and an interactive equity curve.
-- **Analytics** — performance broken down by symbol, setup, direction and weekday,
-  plus a daily P&L calendar heatmap.
+  win/loss, best/worst trade, streaks, **max drawdown**, and an interactive equity curve.
+- **Analytics & reports** — cumulative P&L, R-multiple distribution, performance by
+  symbol / setup / direction / weekday / tag / mistake / time-of-day / hold-time,
+  and a daily P&L calendar heatmap.
+- **Playbooks** — define named strategies (with rules) and track per-playbook stats
+  (net P&L, win rate, profit factor).
 - **Journal** — dated notes with mood tagging for process review.
-- **Settings** — profile and starting-balance (equity-curve baseline).
+- **Settings** — profile, default starting balance, and trading-account management.
 
 ## Tech stack
 

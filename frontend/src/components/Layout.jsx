@@ -5,21 +5,45 @@ import {
   ListOrdered,
   BarChart3,
   BookOpen,
+  NotebookPen,
   Settings as SettingsIcon,
   LogOut,
   TrendingUp,
   Menu,
   X,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useAccounts } from "../context/AccountContext.jsx";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/trades", label: "Trades", icon: ListOrdered },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/playbooks", label: "Playbooks", icon: NotebookPen },
   { to: "/journal", label: "Journal", icon: BookOpen },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
+
+function AccountSelector() {
+  const { accounts, selectedId, setSelectedId } = useAccounts();
+  if (!accounts.length) return null;
+  return (
+    <div className="flex items-center gap-2">
+      <Wallet size={15} className="text-slate-500" />
+      <select
+        value={selectedId ?? ""}
+        onChange={(e) => setSelectedId(e.target.value ? Number(e.target.value) : null)}
+        className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+      >
+        <option value="">All accounts</option>
+        {accounts.map((a) => (
+          <option key={a.id} value={a.id}>{a.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -99,6 +123,9 @@ export default function Layout({ children }) {
 
       {open && (
         <div className="md:hidden fixed inset-0 top-14 z-40 bg-slate-950/95 p-4">
+          <div className="mb-3">
+            <AccountSelector />
+          </div>
           <nav className="flex flex-col gap-1">
             <NavItems />
             <button
@@ -113,6 +140,10 @@ export default function Layout({ children }) {
 
       {/* Main content */}
       <main className="flex-1 md:ml-60 pt-14 md:pt-0">
+        {/* Top bar with account selector (desktop) */}
+        <div className="hidden md:flex items-center justify-end px-8 h-14 border-b border-slate-800/60 sticky top-0 bg-slate-950/80 backdrop-blur z-30">
+          <AccountSelector />
+        </div>
         <div className="max-w-7xl mx-auto p-4 md:p-8">{children}</div>
       </main>
     </div>

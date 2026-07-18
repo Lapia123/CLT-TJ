@@ -10,8 +10,10 @@ import {
   Flame,
   Plus,
 } from "lucide-react";
+import { TrendingDown } from "lucide-react";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useAccounts } from "../context/AccountContext.jsx";
 import StatCard from "../components/StatCard.jsx";
 import EquityCurve from "../components/EquityCurve.jsx";
 import TradeForm from "../components/TradeForm.jsx";
@@ -19,19 +21,22 @@ import { fmtMoney, fmtPct, fmtNumber, pnlColor, fmtDate } from "../lib/format";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { accountParams } = useAccounts();
   const [summary, setSummary] = useState(null);
   const [curve, setCurve] = useState([]);
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
 
+  const accountKey = JSON.stringify(accountParams);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [s, c, t] = await Promise.all([
-        api.get("/api/analytics/summary"),
-        api.get("/api/analytics/equity-curve"),
-        api.get("/api/trades", { params: { limit: 8 } }),
+        api.get("/api/analytics/summary", { params: accountParams }),
+        api.get("/api/analytics/equity-curve", { params: accountParams }),
+        api.get("/api/trades", { params: { ...accountParams, limit: 8 } }),
       ]);
       setSummary(s.data);
       setCurve(c.data);
@@ -39,7 +44,8 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountKey]);
 
   useEffect(() => {
     load();
@@ -142,6 +148,20 @@ export default function Dashboard() {
               sub={summary.avg_r_multiple !== null ? `Avg ${fmtNumber(summary.avg_r_multiple)}R` : undefined}
               icon={Flame}
             />
+          </div>
+
+          {/* Risk row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              label="Max drawdown"
+              value={fmtMoney(summary.max_drawdown ? -summary.max_drawdown : 0)}
+              valueClass="text-rose-400"
+              sub={summary.max_drawdown_pct ? `${fmtNumber(summary.max_drawdown_pct)}% peak-to-trough` : "—"}
+              icon={TrendingDown}
+            />
+            <StatCard label="Expectancy" value={fmtMoney(summary.expectancy)} valueClass={pnlColor(summary.expectancy)} sub="per trade" icon={Scale} />
+            <StatCard label="Open trades" value={summary.open_trades} sub="currently held" icon={Activity} />
+            <StatCard label="Avg R" value={summary.avg_r_multiple !== null ? `${fmtNumber(summary.avg_r_multiple)}R` : "—"} valueClass={pnlColor(summary.avg_r_multiple)} icon={TrendingUp} />
           </div>
 
           {/* Recent trades */}

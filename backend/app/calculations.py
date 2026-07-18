@@ -79,6 +79,67 @@ def compute_metrics(trade: dict) -> TradeMetrics:
     )
 
 
+def max_drawdown(equity_points: list[float]) -> dict:
+    """Compute max drawdown (absolute and percent) over a sequence of equity values."""
+    if not equity_points:
+        return {"max_drawdown": 0.0, "max_drawdown_pct": 0.0}
+    peak = equity_points[0]
+    max_dd = 0.0
+    max_dd_pct = 0.0
+    for value in equity_points:
+        if value > peak:
+            peak = value
+        dd = peak - value
+        dd_pct = (dd / peak * 100.0) if peak else 0.0
+        if dd > max_dd:
+            max_dd = dd
+        if dd_pct > max_dd_pct:
+            max_dd_pct = dd_pct
+    return {"max_drawdown": round(max_dd, 2), "max_drawdown_pct": round(max_dd_pct, 2)}
+
+
+# Buckets (in R) for the R-multiple distribution histogram.
+R_BUCKETS = [
+    ("< -3R", -999, -3),
+    ("-3R..-2R", -3, -2),
+    ("-2R..-1R", -2, -1),
+    ("-1R..0R", -1, 0),
+    ("0R..1R", 0, 1),
+    ("1R..2R", 1, 2),
+    ("2R..3R", 2, 3),
+    ("> 3R", 3, 999),
+]
+
+
+def r_distribution(closed_trades: list[dict]) -> list[dict]:
+    """Histogram of R-multiples across closed trades that have an R value."""
+    counts = {label: 0 for label, _, _ in R_BUCKETS}
+    for t in closed_trades:
+        r = t.get("r_multiple")
+        if r is None:
+            continue
+        for label, lo, hi in R_BUCKETS:
+            if lo <= r < hi:
+                counts[label] += 1
+                break
+    return [{"bucket": label, "count": counts[label]} for label, _, _ in R_BUCKETS]
+
+
+def hold_time_bucket(hours: float | None) -> str:
+    """Human label for a holding period, used to group performance by duration."""
+    if hours is None:
+        return "Unknown"
+    if hours < 1:
+        return "< 1h"
+    if hours < 4:
+        return "1-4h"
+    if hours < 24:
+        return "4-24h"
+    if hours < 24 * 7:
+        return "1-7d"
+    return "> 7d"
+
+
 def summarize(trades: list[dict]) -> dict:
     """Aggregate portfolio-level statistics over a list of trade dicts.
 
