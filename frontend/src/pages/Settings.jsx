@@ -1,11 +1,106 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Pencil, Trash2, Star, KeyRound, AlertTriangle } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useAccounts } from "../context/AccountContext.jsx";
 import api, { errorMessage } from "../api/client";
 import Modal from "../components/Modal.jsx";
 import { useToast } from "../components/Toast.jsx";
 import { fmtMoney } from "../lib/format";
+
+function SecurityCard() {
+  const toast = useToast();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await api.post("/api/auth/change-password", { current_password: current, new_password: next });
+      toast.success("Password changed.");
+      setCurrent("");
+      setNext("");
+    } catch (err) {
+      toast.error(errorMessage(err, "Could not change password."));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="card p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <KeyRound size={18} className="text-slate-400" />
+        <h2 className="font-semibold">Security</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="label">Current password</label>
+          <input type="password" className="input" value={current} onChange={(e) => setCurrent(e.target.value)} required />
+        </div>
+        <div>
+          <label className="label">New password</label>
+          <input type="password" className="input" value={next} onChange={(e) => setNext(e.target.value)} minLength={6} required />
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <button type="submit" className="btn-primary" disabled={saving}>{saving ? "Saving…" : "Change password"}</button>
+      </div>
+    </form>
+  );
+}
+
+function DangerZone() {
+  const toast = useToast();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const remove = async () => {
+    setBusy(true);
+    try {
+      await api.delete("/api/auth/me");
+      logout();
+      navigate("/");
+    } catch (err) {
+      toast.error(errorMessage(err, "Could not delete account."));
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card p-6 border border-rose-500/30">
+      <div className="flex items-center gap-2 mb-1">
+        <AlertTriangle size={18} className="text-rose-400" />
+        <h2 className="font-semibold text-rose-300">Danger zone</h2>
+      </div>
+      <p className="text-sm text-slate-400">
+        Permanently delete your account and all trades, accounts, playbooks, goals and journal
+        entries. This cannot be undone.
+      </p>
+      <button className="btn-danger mt-4" onClick={() => setOpen(true)}>Delete my account</button>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Delete account">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-300">
+            This is permanent. Type <span className="font-semibold text-rose-300">DELETE</span> to confirm.
+          </p>
+          <input className="input" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" />
+          <div className="flex justify-end gap-2">
+            <button className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
+            <button className="btn-danger" disabled={confirmText !== "DELETE" || busy} onClick={remove}>
+              {busy ? "Deleting…" : "Permanently delete"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
 
 const emptyAcct = () => ({ name: "", broker: "", currency: "USD", starting_balance: 10000, is_default: false });
 
@@ -173,13 +268,17 @@ export default function Settings() {
 
       <AccountsCard />
 
+      <SecurityCard />
+
       <div className="card p-6">
         <h2 className="font-semibold mb-1">About CLT Trading Journal</h2>
         <p className="text-sm text-slate-400">
           Log trades, import from your broker, track P&L / R-multiple / drawdown, analyze by
-          symbol, setup, playbook, time and hold-time, and review your process. Version 2.1.0.
+          symbol, setup, playbook, time and hold-time, and review your process. Version 2.2.0.
         </p>
       </div>
+
+      <DangerZone />
     </div>
   );
 }

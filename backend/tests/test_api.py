@@ -27,6 +27,9 @@ def client(monkeypatch):
 
     from app import main
     from app.database import Base
+    from app.ratelimit import _auth_limiter
+
+    _auth_limiter._hits.clear()
 
     Base.metadata.create_all(bind=engine)
 
