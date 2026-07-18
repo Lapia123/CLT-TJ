@@ -28,6 +28,13 @@ class UserOut(BaseModel):
     is_verified: bool = False
     created_at: datetime
 
+    @field_validator("is_verified", mode="before")
+    @classmethod
+    def _default_verified(cls, v):
+        # Rows that predate the is_verified column read back as NULL on an
+        # already-deployed database; treat that as unverified rather than error.
+        return bool(v) if v is not None else False
+
 
 class EmailRequest(BaseModel):
     email: EmailStr

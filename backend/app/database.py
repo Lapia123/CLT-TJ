@@ -75,6 +75,15 @@ def _add_missing_columns() -> None:
             ddl = f'ALTER TABLE {table.name} ADD COLUMN {column.name} {col_type}'
             with engine.begin() as conn:
                 conn.execute(text(ddl))
+                # Backfill existing rows for columns the model expects to be
+                # non-null, using the model's scalar default, so pre-existing
+                # rows don't read back as NULL.
+                default = getattr(column.default, "arg", None)
+                if not column.nullable and default is not None and not callable(default):
+                    conn.execute(
+                        text(f"UPDATE {table.name} SET {column.name} = :val WHERE {column.name} IS NULL"),
+                        {"val": default},
+                    )
 
 
 def init_db() -> None:
