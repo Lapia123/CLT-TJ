@@ -6,6 +6,8 @@ import {
   BarChart3,
   BookOpen,
   NotebookPen,
+  Lightbulb,
+  Target,
   Settings as SettingsIcon,
   LogOut,
   TrendingUp,
@@ -20,7 +22,9 @@ const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/trades", label: "Trades", icon: ListOrdered },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/insights", label: "Insights", icon: Lightbulb },
   { to: "/playbooks", label: "Playbooks", icon: NotebookPen },
+  { to: "/goals", label: "Goals & Risk", icon: Target },
   { to: "/journal", label: "Journal", icon: BookOpen },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];

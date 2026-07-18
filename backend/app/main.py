@@ -17,7 +17,16 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import init_db
-from .routers import accounts, analytics, auth, journal, playbooks, trades
+from .routers import (
+    accounts,
+    analytics,
+    auth,
+    goals,
+    insights,
+    journal,
+    playbooks,
+    trades,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("clt-tj")
@@ -32,7 +41,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    version="2.0.0",
+    version="2.1.0",
     description="A trading journal to log trades and analyze performance.",
     lifespan=lifespan,
 )
@@ -57,7 +66,7 @@ async def security_headers(request: Request, call_next):
 
 @app.get("/api/health", tags=["health"])
 def health() -> dict:
-    return {"status": "ok", "app": settings.app_name, "version": "2.0.0"}
+    return {"status": "ok", "app": settings.app_name, "version": "2.1.0"}
 
 
 app.include_router(auth.router)
@@ -65,6 +74,8 @@ app.include_router(accounts.router)
 app.include_router(playbooks.router)
 app.include_router(trades.router)
 app.include_router(analytics.router)
+app.include_router(insights.router)
+app.include_router(goals.router)
 app.include_router(journal.router)
 
 

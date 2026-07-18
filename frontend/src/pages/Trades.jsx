@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2, Search, X, Upload, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, X, Upload, Download, Star } from "lucide-react";
 import api, { errorMessage } from "../api/client";
 import TradeForm from "../components/TradeForm.jsx";
 import TradeDetail from "../components/TradeDetail.jsx";
@@ -47,6 +47,20 @@ export default function Trades() {
 
   const nameFor = (list, id) => list.find((x) => x.id === id)?.name;
 
+  const exportCsv = async () => {
+    try {
+      const res = await api.get("/api/trades/export", { params: accountParams, responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "clt_trades_export.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(errorMessage(err, "Could not export trades."));
+    }
+  };
+
   const openNew = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (t) => { setDetail(null); setEditing(t); setFormOpen(true); };
 
@@ -75,6 +89,7 @@ export default function Trades() {
           <p className="text-slate-500 text-sm">{visible.length} of {trades.length} trades</p>
         </div>
         <div className="flex gap-2">
+          <button className="btn-ghost" onClick={exportCsv}><Download size={16} /> Export</button>
           <button className="btn-ghost" onClick={() => setImportOpen(true)}><Upload size={16} /> Import</button>
           <button className="btn-primary" onClick={openNew}><Plus size={16} /> Log trade</button>
         </div>
