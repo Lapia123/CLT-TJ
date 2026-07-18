@@ -2,14 +2,30 @@
 
 from __future__ import annotations
 
+import json
+
 from .calculations import compute_metrics
 from .models import Trade
+
+
+def parse_images(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+    try:
+        value = json.loads(raw)
+        if isinstance(value, list):
+            return [str(x) for x in value]
+    except (ValueError, TypeError):
+        pass
+    return []
 
 
 def trade_to_dict(trade: Trade) -> dict:
     """Serialize a Trade ORM object into a dict including derived metrics."""
     base = {
         "id": trade.id,
+        "account_id": trade.account_id,
+        "playbook_id": trade.playbook_id,
         "symbol": trade.symbol,
         "direction": trade.direction,
         "status": trade.status,
@@ -23,6 +39,9 @@ def trade_to_dict(trade: Trade) -> dict:
         "exit_date": trade.exit_date,
         "setup": trade.setup,
         "tags": trade.tags,
+        "mistakes": trade.mistakes,
+        "rating": trade.rating,
+        "images": parse_images(trade.images),
         "notes": trade.notes,
         "created_at": trade.created_at,
         "updated_at": trade.updated_at,

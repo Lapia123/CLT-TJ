@@ -1,4 +1,4 @@
-"""Seed the database with a demo user and sample trades.
+"""Seed the database with a demo user, accounts, playbooks and sample trades.
 
 Run with:  python -m app.seed
 Creates demo@clt.app / demo1234 with a spread of realistic trades so the
@@ -14,10 +14,11 @@ from sqlalchemy import select
 
 from .auth import hash_password
 from .database import SessionLocal, init_db
-from .models import JournalEntry, Trade, User
+from .models import Account, JournalEntry, Playbook, Trade, User
 
 SYMBOLS = ["AAPL", "TSLA", "NVDA", "BTCUSD", "EURUSD", "SPY", "AMZN", "MSFT"]
 SETUPS = ["Breakout", "Pullback", "Reversal", "Trend", "Range", "News"]
+MISTAKES = ["", "", "Chased entry", "Moved stop", "Oversized", "FOMO"]
 DEMO_EMAIL = "demo@clt.app"
 DEMO_PASSWORD = "demo1234"
 
@@ -41,6 +42,26 @@ def seed() -> None:
         db.commit()
         db.refresh(user)
 
+        main_acct = Account(
+            user_id=user.id, name="Main Account", broker="Interactive Brokers",
+            currency="USD", starting_balance=25000.0, is_default=True,
+        )
+        prop_acct = Account(
+            user_id=user.id, name="Prop Firm", broker="FTMO",
+            currency="USD", starting_balance=100000.0, is_default=False,
+        )
+        db.add_all([main_acct, prop_acct])
+
+        playbooks = [
+            Playbook(user_id=user.id, name="Breakout", description="Trade breakouts of key levels on volume.", rules="1. Level tested 2+ times\n2. Volume expansion\n3. Stop below level"),
+            Playbook(user_id=user.id, name="Pullback", description="Buy pullbacks in an established trend.", rules="1. Higher highs/lows\n2. Pullback to MA\n3. Reversal candle"),
+            Playbook(user_id=user.id, name="Reversal", description="Fade exhaustion at extremes.", rules="1. Extended move\n2. Divergence\n3. Confirmation"),
+        ]
+        db.add_all(playbooks)
+        db.commit()
+        for obj in [main_acct, prop_acct, *playbooks]:
+            db.refresh(obj)
+
         rng = random.Random(42)
         base = datetime.now(timezone.utc) - timedelta(days=90)
         for i in range(60):
@@ -49,27 +70,26 @@ def seed() -> None:
             entry = round(rng.uniform(50, 500), 2)
             qty = rng.choice([10, 25, 50, 100])
             entry_date = base + timedelta(days=i, hours=rng.randint(0, 6))
+            account = rng.choice([main_acct, main_acct, prop_acct])
+            pb = rng.choice(playbooks + [None])
 
-            # 88% of trades are closed; skew slightly profitable.
             is_closed = rng.random() < 0.88
             if is_closed:
                 move_pct = rng.uniform(-0.05, 0.065)
-                if direction == "long":
-                    exit_price = round(entry * (1 + move_pct), 2)
-                else:
-                    exit_price = round(entry * (1 - move_pct), 2)
+                exit_price = round(entry * (1 + move_pct) if direction == "long" else entry * (1 - move_pct), 2)
                 exit_date = entry_date + timedelta(hours=rng.randint(1, 72))
                 status = "closed"
-                stop = round(entry * (0.97 if direction == "long" else 1.03), 2)
             else:
                 exit_price = None
                 exit_date = None
                 status = "open"
-                stop = round(entry * (0.97 if direction == "long" else 1.03), 2)
+            stop = round(entry * (0.97 if direction == "long" else 1.03), 2)
 
             db.add(
                 Trade(
                     user_id=user.id,
+                    account_id=account.id,
+                    playbook_id=pb.id if pb else None,
                     symbol=symbol,
                     direction=direction,
                     status=status,
@@ -82,6 +102,8 @@ def seed() -> None:
                     exit_date=exit_date,
                     setup=rng.choice(SETUPS),
                     tags=rng.choice(["", "A+", "watchlist", "mistake"]),
+                    mistakes=rng.choice(MISTAKES),
+                    rating=rng.randint(1, 5),
                     notes=rng.choice(["Clean entry", "Chased it", "Followed plan", ""]),
                 )
             )
@@ -96,7 +118,7 @@ def seed() -> None:
             )
         )
         db.commit()
-        print(f"Seeded demo user {DEMO_EMAIL} / {DEMO_PASSWORD} with 60 trades.")
+        print(f"Seeded demo user {DEMO_EMAIL} / {DEMO_PASSWORD}: 2 accounts, 3 playbooks, 60 trades.")
     finally:
         db.close()
 
