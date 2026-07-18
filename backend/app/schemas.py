@@ -49,6 +49,19 @@ class TokenAction(BaseModel):
     token: str
 
 
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
+class TokenAction(BaseModel):
+    token: str
+
+
 class UserUpdate(BaseModel):
     name: str | None = Field(default=None, max_length=120)
     starting_balance: float | None = Field(default=None, ge=0)
