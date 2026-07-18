@@ -274,7 +274,7 @@ export default function Settings() {
         <h2 className="font-semibold mb-1">About CLT Trading Journal</h2>
         <p className="text-sm text-slate-400">
           Log trades, import from your broker, track P&L / R-multiple / drawdown, analyze by
-          symbol, setup, playbook, time and hold-time, and review your process. Version 2.2.0.
+          symbol, setup, playbook, time and hold-time, and review your process. Version 2.3.0.
         </p>
       </div>
 

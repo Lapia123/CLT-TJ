@@ -37,6 +37,7 @@ def seed() -> None:
             name="Demo Trader",
             hashed_password=hash_password(DEMO_PASSWORD),
             starting_balance=25000.0,
+            is_verified=True,
         )
         db.add(user)
         db.commit()

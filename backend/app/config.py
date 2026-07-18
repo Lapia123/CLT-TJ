@@ -33,6 +33,22 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins for the SPA.
     cors_origins: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
 
+    # --- Email / links ---
+    # Public base URL of the SPA, used to build verify/reset links in emails.
+    frontend_url: str = "http://localhost:5173"
+    # SMTP is optional. When unset, emails are logged instead of sent (dev mode),
+    # so the flows work end-to-end without a mail server.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "CLT Trading Journal <no-reply@clt.app>"
+    smtp_tls: bool = True
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.smtp_host and self.smtp_user)
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

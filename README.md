@@ -8,8 +8,15 @@ profit factor, then review where your edge actually comes from.
 
 ## Features
 
-- **Auth & accounts** — JWT authentication (register / login), per-user isolation,
-  and **multiple trading accounts** you can filter the whole app by.
+- **Auth & accounts** — JWT authentication (register / login), **email verification**,
+  **password reset**, brute-force rate limiting, per-user isolation, and **multiple
+  trading accounts** you can filter the whole app by.
+- **Simulator & replay** — filter your history by setup/direction/playbook/rating/etc.
+  to test how a strategy would have performed, then **replay** the equity curve trade
+  by trade.
+- **Light & dark themes** — toggle in the top bar, preference persisted.
+- **Guided tour** — an in-app walkthrough of every feature, auto-shown on first visit
+  and reopenable from the help (?) button.
 - **Trade log** — full CRUD for long/short, open/closed positions with entry/exit
   prices, stops, targets, fees, setup, tags, **mistakes**, a **1–5 star rating**,
   **chart screenshots**, playbook and account links, and notes.

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   ListOrdered,
@@ -8,15 +8,22 @@ import {
   NotebookPen,
   Lightbulb,
   Target,
+  FlaskConical,
   Settings as SettingsIcon,
   LogOut,
   TrendingUp,
   Menu,
   X,
   Wallet,
+  Sun,
+  Moon,
+  HelpCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useAccounts } from "../context/AccountContext.jsx";
+import { useTheme } from "../context/ThemeContext.jsx";
+import Tour from "./Tour.jsx";
+import VerifyBanner from "./VerifyBanner.jsx";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -24,10 +31,25 @@ const nav = [
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/insights", label: "Insights", icon: Lightbulb },
   { to: "/playbooks", label: "Playbooks", icon: NotebookPen },
+  { to: "/simulator", label: "Simulator", icon: FlaskConical },
   { to: "/goals", label: "Goals & Risk", icon: Target },
   { to: "/journal", label: "Journal", icon: BookOpen },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
+
+function TopBarActions({ onTour }) {
+  const { theme, toggle } = useTheme();
+  return (
+    <div className="flex items-center gap-1">
+      <button onClick={onTour} title="Take a tour" className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        <HelpCircle size={18} />
+      </button>
+      <button onClick={toggle} title="Toggle theme" className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+        {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+      </button>
+    </div>
+  );
+}
 
 function AccountSelector() {
   const { accounts, selectedId, setSelectedId } = useAccounts();
@@ -53,6 +75,15 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  // Auto-show the tour once for first-time visitors.
+  useEffect(() => {
+    if (!localStorage.getItem("clt_tour_seen")) {
+      setTourOpen(true);
+      localStorage.setItem("clt_tour_seen", "1");
+    }
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -120,9 +151,12 @@ export default function Layout({ children }) {
           </div>
           <span className="font-bold">CLT</span>
         </div>
-        <button onClick={() => setOpen((o) => !o)} className="text-slate-300">
-          {open ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div className="flex items-center gap-1">
+          <TopBarActions onTour={() => setTourOpen(true)} />
+          <button onClick={() => setOpen((o) => !o)} className="text-slate-300">
+            {open ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -145,11 +179,17 @@ export default function Layout({ children }) {
       {/* Main content */}
       <main className="flex-1 md:ml-60 pt-14 md:pt-0">
         {/* Top bar with account selector (desktop) */}
-        <div className="hidden md:flex items-center justify-end px-8 h-14 border-b border-slate-800/60 sticky top-0 bg-slate-950/80 backdrop-blur z-30">
+        <div className="hidden md:flex items-center justify-end gap-3 px-8 h-14 border-b border-slate-800/60 sticky top-0 bg-slate-950/80 backdrop-blur z-30">
           <AccountSelector />
+          <TopBarActions onTour={() => setTourOpen(true)} />
         </div>
-        <div className="max-w-7xl mx-auto p-4 md:p-8">{children}</div>
+        <div className="max-w-7xl mx-auto p-4 md:p-8">
+          <VerifyBanner />
+          {children}
+        </div>
       </main>
+
+      <Tour open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 }

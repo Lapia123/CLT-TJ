@@ -4,11 +4,15 @@ import Layout from "./components/Layout.jsx";
 import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
+import VerifyEmail from "./pages/VerifyEmail.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Trades from "./pages/Trades.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Insights from "./pages/Insights.jsx";
 import Playbooks from "./pages/Playbooks.jsx";
+import Simulator from "./pages/Simulator.jsx";
 import Goals from "./pages/Goals.jsx";
 import Journal from "./pages/Journal.jsx";
 import Settings from "./pages/Settings.jsx";
@@ -53,10 +57,14 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
+      <Route path="/forgot" element={<ForgotPassword />} />
+      <Route path="/reset" element={<ResetPassword />} />
+      <Route path="/verify" element={<VerifyEmail />} />
       <Route path="/trades" element={<Protected><Trades /></Protected>} />
       <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
       <Route path="/insights" element={<Protected><Insights /></Protected>} />
       <Route path="/playbooks" element={<Protected><Playbooks /></Protected>} />
+      <Route path="/simulator" element={<Protected><Simulator /></Protected>} />
       <Route path="/goals" element={<Protected><Goals /></Protected>} />
       <Route path="/journal" element={<Protected><Journal /></Protected>} />
       <Route path="/settings" element={<Protected><Settings /></Protected>} />
