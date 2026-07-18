@@ -25,7 +25,21 @@ class UserOut(BaseModel):
     email: EmailStr
     name: str
     starting_balance: float
+    is_verified: bool = False
     created_at: datetime
+
+
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
+class TokenAction(BaseModel):
+    token: str
 
 
 class UserUpdate(BaseModel):
@@ -224,6 +238,19 @@ class Insight(BaseModel):
     detail: str
     sentiment: Literal["positive", "negative", "neutral"]
     metric: float | None = None
+
+
+# --------------------------- Backtest / simulator ---------------------------
+class BacktestRequest(BaseModel):
+    account_id: int | None = None
+    setups: list[str] = Field(default_factory=list)
+    directions: list[Direction] = Field(default_factory=list)
+    playbook_ids: list[int] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    weekdays: list[int] = Field(default_factory=list)  # 0=Mon … 6=Sun
+    hold_buckets: list[str] = Field(default_factory=list)
+    min_rating: int | None = Field(default=None, ge=1, le=5)
+    exclude_mistakes: bool = False
 
 
 # --------------------------- Journal ---------------------------

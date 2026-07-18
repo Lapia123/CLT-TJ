@@ -29,6 +29,43 @@ body {
   @apply bg-transparent;
 }
 
+/* ---------------------------------------------------------------------------
+   Light theme. The app is authored dark-first with slate utilities; when
+   <html> has .theme-light we remap those surfaces/text/borders to light values
+   and override the @apply'd component classes below. Accent (indigo) and
+   profit/loss (emerald/rose) colors are legible in both themes and unchanged.
+--------------------------------------------------------------------------- */
+html.theme-light body {
+  @apply bg-slate-100 text-slate-900;
+}
+html.theme-light .bg-slate-950,
+html.theme-light .bg-slate-950\/95,
+html.theme-light .bg-slate-950\/90,
+html.theme-light .bg-slate-950\/80 { background-color: rgb(241 245 249 / 0.9); }
+html.theme-light .bg-slate-900,
+html.theme-light .bg-slate-900\/70,
+html.theme-light .bg-slate-900\/50,
+html.theme-light .bg-slate-900\/40 { background-color: #ffffff; }
+html.theme-light .bg-slate-800,
+html.theme-light .bg-slate-800\/40,
+html.theme-light .bg-slate-800\/30 { background-color: #f1f5f9; }
+html.theme-light .bg-slate-700,
+html.theme-light .bg-slate-700\/50 { background-color: #e2e8f0; }
+html.theme-light .bg-slate-600 { background-color: #cbd5e1; }
+
+html.theme-light .text-slate-100 { color: #0f172a; }
+html.theme-light .text-slate-200 { color: #1e293b; }
+html.theme-light .text-slate-300 { color: #334155; }
+html.theme-light .text-slate-400 { color: #475569; }
+html.theme-light .text-slate-500 { color: #64748b; }
+html.theme-light .text-slate-600 { color: #94a3b8; }
+html.theme-light .text-slate-700 { color: #cbd5e1; }
+
+html.theme-light .border-slate-800,
+html.theme-light .border-slate-800\/60,
+html.theme-light .border-slate-800\/50 { border-color: #e2e8f0; }
+html.theme-light .border-slate-700 { border-color: #cbd5e1; }
+
 @layer components {
   .card {
     @apply bg-slate-900/70 border border-slate-800 rounded-xl shadow-sm;
@@ -54,4 +91,29 @@ body {
   .badge {
     @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
   }
+}
+
+/* Light-theme overrides for the @apply'd component classes (which inline colors). */
+html.theme-light .card {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+}
+html.theme-light .btn-ghost {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+html.theme-light .btn-ghost:hover {
+  background-color: #cbd5e1;
+}
+html.theme-light .input {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+html.theme-light .input::placeholder {
+  color: #94a3b8;
+}
+html.theme-light .label {
+  color: #475569;
 }

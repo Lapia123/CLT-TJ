@@ -10,9 +10,23 @@ from sqlalchemy.orm import Session
 
 from ..auth import create_access_token, get_current_user, hash_password, verify_password
 from ..database import get_db
+from ..email import (
+    read_token,
+    send_password_reset_email,
+    send_verification_email,
+)
 from ..models import User
 from ..ratelimit import auth_rate_limit
-from ..schemas import PasswordChange, Token, UserCreate, UserOut, UserUpdate
+from ..schemas import (
+    EmailRequest,
+    PasswordChange,
+    ResetPassword,
+    Token,
+    TokenAction,
+    UserCreate,
+    UserOut,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -37,6 +51,8 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    send_verification_email(user.email, user.id)
 
     token = create_access_token(user.id)
     return Token(access_token=token, user=UserOut.model_validate(user))
@@ -99,3 +115,52 @@ def delete_account(
     db.delete(current_user)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# --------------------------- Email verification ---------------------------
+@router.post("/verify", response_model=UserOut)
+def verify_email(payload: TokenAction, db: Session = Depends(get_db)) -> UserOut:
+    user_id = read_token(payload.token, "verify")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="This verification link is invalid or expired.")
+    user = db.get(User, int(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="Account not found.")
+    user.is_verified = True
+    db.commit()
+    db.refresh(user)
+    return UserOut.model_validate(user)
+
+
+@router.post("/verify/resend", status_code=status.HTTP_204_NO_CONTENT)
+def resend_verification(
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.is_verified:
+        send_verification_email(current_user.email, current_user.id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# --------------------------- Password reset ---------------------------
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(auth_rate_limit)])
+def forgot_password(payload: EmailRequest, db: Session = Depends(get_db)) -> dict:
+    """Always returns 202 so we never reveal whether an email is registered."""
+    user = db.scalar(select(User).where(User.email == payload.email.lower()))
+    if user:
+        send_password_reset_email(user.email, user.id)
+    return {"detail": "If that email is registered, a reset link has been sent."}
+
+
+@router.post("/reset-password", response_model=Token, dependencies=[Depends(auth_rate_limit)])
+def reset_password(payload: ResetPassword, db: Session = Depends(get_db)) -> Token:
+    user_id = read_token(payload.token, "reset")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="This reset link is invalid or expired.")
+    user = db.get(User, int(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="Account not found.")
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    db.refresh(user)
+    token = create_access_token(user.id)
+    return Token(access_token=token, user=UserOut.model_validate(user))

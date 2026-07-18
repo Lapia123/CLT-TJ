@@ -21,6 +21,7 @@ from .routers import (
     accounts,
     analytics,
     auth,
+    backtest,
     goals,
     insights,
     journal,
@@ -41,7 +42,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    version="2.2.0",
+    version="2.3.0",
     description="A trading journal to log trades and analyze performance.",
     lifespan=lifespan,
 )
@@ -66,7 +67,7 @@ async def security_headers(request: Request, call_next):
 
 @app.get("/api/health", tags=["health"])
 def health() -> dict:
-    return {"status": "ok", "app": settings.app_name, "version": "2.2.0"}
+    return {"status": "ok", "app": settings.app_name, "version": "2.3.0"}
 
 
 app.include_router(auth.router)
@@ -75,6 +76,7 @@ app.include_router(playbooks.router)
 app.include_router(trades.router)
 app.include_router(analytics.router)
 app.include_router(insights.router)
+app.include_router(backtest.router)
 app.include_router(goals.router)
 app.include_router(journal.router)
 
