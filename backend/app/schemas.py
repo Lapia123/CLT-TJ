@@ -177,6 +177,50 @@ class ImportResult(BaseModel):
     imported: int = 0
 
 
+# --------------------------- Goals ---------------------------
+GoalMetric = Literal["net_pnl", "win_rate", "trades", "profit_factor"]
+GoalPeriod = Literal["all_time", "monthly"]
+
+
+class GoalCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    metric: GoalMetric
+    target: float
+    period: GoalPeriod = "all_time"
+    account_id: int | None = None
+
+
+class GoalUpdate(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    metric: GoalMetric | None = None
+    target: float | None = None
+    period: GoalPeriod | None = None
+    account_id: int | None = None
+
+
+class GoalOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    metric: GoalMetric
+    target: float
+    period: GoalPeriod
+    account_id: int | None
+    created_at: datetime
+    # computed
+    current: float = 0.0
+    progress_pct: float = 0.0
+    achieved: bool = False
+
+
+class Insight(BaseModel):
+    key: str
+    title: str
+    detail: str
+    sentiment: Literal["positive", "negative", "neutral"]
+    metric: float | None = None
+
+
 # --------------------------- Journal ---------------------------
 class JournalCreate(BaseModel):
     entry_date: datetime

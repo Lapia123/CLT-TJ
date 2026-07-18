@@ -26,6 +26,12 @@ profit factor, then review where your edge actually comes from.
   and a daily P&L calendar heatmap.
 - **Playbooks** — define named strategies (with rules) and track per-playbook stats
   (net P&L, win rate, profit factor).
+- **Insights** — an automated, rule-based review of your trading that surfaces
+  observations (best/worst day & setup, long/short skew, revenge-trading after
+  losses, mistake cost, rating calibration, expectancy, risk:reward).
+- **Goals & risk** — set targets (net P&L, win rate, trade count, profit factor;
+  all-time or monthly) with live progress bars, plus a position-size calculator.
+- **CSV export** — export your trade log (optionally per account) to CSV.
 - **Journal** — dated notes with mood tagging for process review.
 - **Settings** — profile, default starting balance, and trading-account management.
 

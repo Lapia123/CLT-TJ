@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 from .auth import hash_password
 from .database import SessionLocal, init_db
-from .models import Account, JournalEntry, Playbook, Trade, User
+from .models import Account, Goal, JournalEntry, Playbook, Trade, User
 
 SYMBOLS = ["AAPL", "TSLA", "NVDA", "BTCUSD", "EURUSD", "SPY", "AMZN", "MSFT"]
 SETUPS = ["Breakout", "Pullback", "Reversal", "Trend", "Range", "News"]
@@ -108,6 +108,11 @@ def seed() -> None:
                 )
             )
 
+        db.add_all([
+            Goal(user_id=user.id, name="Monthly net P&L", metric="net_pnl", target=3000, period="monthly"),
+            Goal(user_id=user.id, name="Reach 60% win rate", metric="win_rate", target=60, period="all_time"),
+            Goal(user_id=user.id, name="Log 100 trades", metric="trades", target=100, period="all_time"),
+        ])
         db.add(
             JournalEntry(
                 user_id=user.id,
@@ -118,7 +123,7 @@ def seed() -> None:
             )
         )
         db.commit()
-        print(f"Seeded demo user {DEMO_EMAIL} / {DEMO_PASSWORD}: 2 accounts, 3 playbooks, 60 trades.")
+        print(f"Seeded demo user {DEMO_EMAIL} / {DEMO_PASSWORD}: 2 accounts, 3 playbooks, 3 goals, 60 trades.")
     finally:
         db.close()
 

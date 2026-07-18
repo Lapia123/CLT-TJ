@@ -241,6 +241,48 @@ async def import_trades(
     )
 
 
+@router.get("/export", tags=["trades"])
+def export_trades(
+    account_id: int | None = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Export the user's trades (optionally one account) as a CSV download."""
+    stmt = select(Trade).where(Trade.user_id == current_user.id)
+    if account_id is not None:
+        stmt = stmt.where(Trade.account_id == account_id)
+    stmt = stmt.order_by(Trade.entry_date.desc())
+
+    cols = [
+        "symbol", "direction", "status", "quantity", "entry_price", "exit_price",
+        "stop_loss", "take_profit", "fees", "entry_date", "exit_date", "setup",
+        "tags", "mistakes", "rating", "notes", "net_pnl", "return_pct", "r_multiple",
+    ]
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(cols)
+    for t in db.scalars(stmt).all():
+        d = trade_to_dict(t)
+        writer.writerow(
+            [
+                d["symbol"], d["direction"], d["status"], d["quantity"], d["entry_price"],
+                d["exit_price"] or "", d["stop_loss"] or "", d["take_profit"] or "", d["fees"],
+                d["entry_date"].isoformat() if d["entry_date"] else "",
+                d["exit_date"].isoformat() if d["exit_date"] else "",
+                d["setup"] or "", d["tags"] or "", d["mistakes"] or "", d["rating"] or "",
+                (d["notes"] or "").replace("\n", " "),
+                d["net_pnl"] if d["net_pnl"] is not None else "",
+                d["return_pct"] if d["return_pct"] is not None else "",
+                d["r_multiple"] if d["r_multiple"] is not None else "",
+            ]
+        )
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=clt_trades_export.csv"},
+    )
+
+
 @router.get("/{trade_id}", response_model=TradeOut)
 def get_trade(
     trade_id: int,

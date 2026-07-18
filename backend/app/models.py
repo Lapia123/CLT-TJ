@@ -130,6 +130,29 @@ class Trade(Base):
     playbook: Mapped["Playbook"] = relationship(back_populates="trades")
 
 
+class Goal(Base):
+    """A user-defined performance target tracked against actual results."""
+
+    __tablename__ = "goals"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    # metric ∈ net_pnl | win_rate | trades | profit_factor
+    metric: Mapped[str] = mapped_column(String(24), nullable=False)
+    target: Mapped[float] = mapped_column(Float, nullable=False)
+    # period ∈ all_time | monthly
+    period: Mapped[str] = mapped_column(String(16), default="all_time", nullable=False)
+    account_id: Mapped[int | None] = mapped_column(
+        ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship()
+
+
 class JournalEntry(Base):
     __tablename__ = "journal_entries"
 
