@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -10,12 +11,18 @@ from sqlalchemy.orm import Session
 from ..auth import create_access_token, get_current_user, hash_password, verify_password
 from ..database import get_db
 from ..models import User
-from ..schemas import Token, UserCreate, UserOut, UserUpdate
+from ..ratelimit import auth_rate_limit
+from ..schemas import PasswordChange, Token, UserCreate, UserOut, UserUpdate
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=Token,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(auth_rate_limit)],
+)
 def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
@@ -35,7 +42,7 @@ def register(payload: UserCreate, db: Session = Depends(get_db)) -> Token:
     return Token(access_token=token, user=UserOut.model_validate(user))
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, dependencies=[Depends(auth_rate_limit)])
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ) -> Token:
@@ -69,3 +76,26 @@ def update_me(
     db.commit()
     db.refresh(current_user)
     return UserOut.model_validate(current_user)
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: PasswordChange,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect.")
+    current_user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """Permanently delete the current user and all their data."""
+    db.delete(current_user)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

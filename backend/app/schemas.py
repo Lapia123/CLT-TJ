@@ -33,6 +33,11 @@ class UserUpdate(BaseModel):
     starting_balance: float | None = Field(default=None, ge=0)
 
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=6, max_length=128)
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"

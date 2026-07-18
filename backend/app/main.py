@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    version="2.1.0",
+    version="2.2.0",
     description="A trading journal to log trades and analyze performance.",
     lifespan=lifespan,
 )
@@ -66,7 +66,7 @@ async def security_headers(request: Request, call_next):
 
 @app.get("/api/health", tags=["health"])
 def health() -> dict:
-    return {"status": "ok", "app": settings.app_name, "version": "2.1.0"}
+    return {"status": "ok", "app": settings.app_name, "version": "2.2.0"}
 
 
 app.include_router(auth.router)

@@ -41,6 +41,9 @@ class User(Base):
     playbooks: Mapped[list["Playbook"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    goals: Mapped[list["Goal"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     journal_entries: Mapped[list["JournalEntry"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
@@ -150,7 +153,7 @@ class Goal(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship(back_populates="goals")
 
 
 class JournalEntry(Base):

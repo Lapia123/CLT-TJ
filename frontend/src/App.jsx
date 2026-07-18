@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Layout from "./components/Layout.jsx";
+import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
@@ -32,12 +33,26 @@ function PublicOnly({ children }) {
   return children;
 }
 
+function Home() {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="h-screen flex items-center justify-center text-slate-500">Loading…</div>;
+  }
+  // Logged-out visitors see the marketing landing page; members see the dashboard.
+  if (!user) return <Landing />;
+  return (
+    <Layout>
+      <Dashboard />
+    </Layout>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Home />} />
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><Register /></PublicOnly>} />
-      <Route path="/" element={<Protected><Dashboard /></Protected>} />
       <Route path="/trades" element={<Protected><Trades /></Protected>} />
       <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
       <Route path="/insights" element={<Protected><Insights /></Protected>} />
