@@ -7,13 +7,29 @@ from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import settings
 
+
+def _normalize_db_url(url: str) -> str:
+    """Normalize a database URL to a SQLAlchemy-compatible driver form.
+
+    Managed hosts (Render, Heroku, Railway) expose Postgres URLs as
+    ``postgres://`` or ``postgresql://``. SQLAlchemy 2.0 rejects the bare
+    ``postgres://`` scheme, and we ship the psycopg (v3) driver, so we route
+    both to ``postgresql+psycopg://``.
+    """
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://") :]
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://") :]
+    return url
+
+
+DATABASE_URL = _normalize_db_url(settings.database_url)
+
 # SQLite needs check_same_thread=False when used with FastAPI's threadpool.
-connect_args = (
-    {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-)
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(
-    settings.database_url,
+    DATABASE_URL,
     connect_args=connect_args,
     pool_pre_ping=True,
     future=True,

@@ -25,4 +25,5 @@ WORKDIR /app/backend
 EXPOSE 8000
 
 # Single Uvicorn process serves both the API (/api/*) and the SPA.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Bind to $PORT when the platform provides one (Render/Railway), else 8000.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

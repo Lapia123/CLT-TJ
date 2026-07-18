@@ -77,6 +77,22 @@ Without Docker: run `npm run build` in `frontend/`, copy `frontend/dist` to
 `backend/static`, set `ENVIRONMENT=production` + a real `SECRET_KEY`, and run
 Uvicorn (behind a reverse proxy such as Nginx or Caddy).
 
+### Deploy to Render (one-click blueprint)
+
+This repo ships a [`render.yaml`](./render.yaml) blueprint that provisions the
+web service **and** a managed Postgres, wired together automatically.
+
+1. Push this repo to GitHub (done).
+2. In the [Render dashboard](https://dashboard.render.com/), click
+   **New + → Blueprint**.
+3. Connect this GitHub repo and select the branch. Render reads `render.yaml`.
+4. Click **Apply**. Render builds the Docker image, creates the Postgres
+   database, generates a `SECRET_KEY`, injects `DATABASE_URL`, and deploys.
+5. When the service is live, open its `onrender.com` URL and register an account.
+
+Tables are created automatically on first boot — no migration step. The free
+Postgres plan suits evaluation; upgrade the plan for production durability.
+
 ### Production checklist
 
 - [ ] Set a strong random `SECRET_KEY`.
