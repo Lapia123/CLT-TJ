@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import settings
-from .database import init_db
+from .database import engine, init_db
 from .routers import (
     accounts,
     analytics,
@@ -67,7 +67,15 @@ async def security_headers(request: Request, call_next):
 
 @app.get("/api/health", tags=["health"])
 def health() -> dict:
-    return {"status": "ok", "app": settings.app_name, "version": "2.3.0"}
+    # `database` reports the active backend (postgresql = persistent,
+    # sqlite = ephemeral on most hosts). No credentials are exposed.
+    return {
+        "status": "ok",
+        "app": settings.app_name,
+        "version": "2.3.0",
+        "database": engine.dialect.name,
+        "persistent": engine.dialect.name != "sqlite",
+    }
 
 
 app.include_router(auth.router)
